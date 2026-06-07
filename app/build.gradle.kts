@@ -6,12 +6,19 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("kotlin-parcelize")
-    id("com.google.gms.google-services")
+    //id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.david.collegeevents"
     compileSdk = 35
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.david.collegeevents"
@@ -34,15 +41,15 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
-//    kotlin {
-//        compilerOptions {
-//            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-//        }
-//    }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
 
     buildFeatures {
         buildConfig = true
