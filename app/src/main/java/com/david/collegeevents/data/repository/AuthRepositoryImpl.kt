@@ -1,6 +1,6 @@
 package com.david.collegeevents.data.repository
 
-import com.david.collegeevents.data.remote.AuthApi
+import com.david.collegeevents.data.remote.ApiServices
 import com.david.collegeevents.data.remote.dto.GenericErrorDto
 import com.david.collegeevents.data.remote.dto.LoginRequest
 import com.david.collegeevents.data.remote.dto.RegisterRequest
@@ -16,7 +16,7 @@ import java.io.IOException
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val api: AuthApi,
+    private val api: ApiServices,
     private val tokenManager: TokenManager // 👈 TokenManager inject kiya
 ) : AuthRepository {
 
@@ -28,9 +28,21 @@ class AuthRepositoryImpl @Inject constructor(
                 val body = response.body()!!
 
                 // 🔴 EDGE CASE FIXED: Save to local session permanently before emitting success
-                tokenManager.saveSession(token = body.token, userName = body.student.fullName)
+                tokenManager.saveSession(
+                    token = body.token,
+                    userName = body.student.fullName,
+                    role = body.student.role
+                )
 
-                emit(Resource.Success(AuthResult(token = body.token, userName = body.student.fullName)))
+                emit(
+                    Resource.Success(
+                        AuthResult(
+                            token = body.token,
+                            userName = body.student.fullName,
+                            role = body.student.role
+                        )
+                    )
+                )
             } else {
                 val errorMsg = parseErrorMessage(response.errorBody()?.string())
                 emit(Resource.Error(errorMsg))
@@ -42,7 +54,13 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun register(name: String, enr: String, branch: String, email: String, pass: String): Flow<Resource<AuthResult>> = flow {
+    override fun register(
+        name: String,
+        enr: String,
+        branch: String,
+        email: String,
+        pass: String
+    ): Flow<Resource<AuthResult>> = flow {
         emit(Resource.Loading())
         try {
             val response = api.register(RegisterRequest(name, enr, branch, email, pass))
@@ -50,9 +68,21 @@ class AuthRepositoryImpl @Inject constructor(
                 val body = response.body()!!
 
                 // 🔴 EDGE CASE FIXED: Save session immediately on registration
-                tokenManager.saveSession(token = body.token, userName = body.student.fullName)
+                tokenManager.saveSession(
+                    token = body.token,
+                    userName = body.student.fullName,
+                    role = body.student.role
+                )
 
-                emit(Resource.Success(AuthResult(token = body.token, userName = body.student.fullName)))
+                emit(
+                    Resource.Success(
+                        AuthResult(
+                            token = body.token,
+                            userName = body.student.fullName,
+                            role = body.student.role
+                        )
+                    )
+                )
             } else {
                 val errorMsg = parseErrorMessage(response.errorBody()?.string())
                 emit(Resource.Error(errorMsg))

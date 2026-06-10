@@ -1,0 +1,14 @@
+package com.david.collegeevents.data.remote.dto
+//
+//import com.google.gson.annotations.SerializedName
+//
+//data class StudentProfileDto(
+//    @SerializedName("id") val id: String,
+//    @SerializedName("fullName") val fullName: String,
+//    @SerializedName("enrollmentNumber") val enrollmentNumber: String,
+//    @SerializedName("branchDepartment") val branchDepartment: String,
+//    @SerializedName("universityEmail") val universityEmail: String,
+//    @SerializedName("totalEvents") val totalEvents: Int,
+//    @SerializedName("certificatesCount") val certificatesCount: Int,
+//    @SerializedName("registeredEvents") val registeredEvents: List<EventSummaryDto>
+//)
