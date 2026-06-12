@@ -12,9 +12,11 @@ import com.david.collegeevents.data.remote.dto.StudentProfileDto
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -49,9 +51,25 @@ interface ApiServices {
         @Part image: MultipartBody.Part
     ): Response<ImageUploadResponse>
 
+    @DELETE("images/{imageName}")
+    suspend fun deleteServerImage(
+        @Path("imageName") imageName: String
+    ): Response<Map<String, String>>
+
     @POST("api/events")
     suspend fun createNewEvent(
         @Body request: CreateEventRequest
+    ): Response<GenericErrorDto>
+
+    @PUT("api/events/{id}")
+    suspend fun updateExistingEvent(
+        @Path("id") eventId: String,
+        @Body request: CreateEventRequest
+    ): Response<GenericErrorDto>
+
+    @DELETE("api/events/{id}")
+    suspend fun deleteExistingEvent(
+        @Path("id") eventId: String
     ): Response<GenericErrorDto>
 
 }

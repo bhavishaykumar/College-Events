@@ -1,25 +1,35 @@
 package com.david.collegeevents.presentation.events
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,37 +37,67 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.david.collegeevents.domain.model.EventSummary
+import com.david.collegeevents.utils.TokenManager
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun EventsScreen(
     onEventClick: (String) -> Unit,
+    onNavigateToCreate: () -> Unit,
+    onNavigateToEdit: (String) -> Unit,
+    selectedEventId: String?,                     // 👈 Received from MainActivity
+    onSelectionChanged: (String?, String?) -> Unit, // 👈 Callback for MainActivity
     viewModel: EventsViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
+    val context = LocalContext.current
     val categories = listOf("All", "Technical", "Cultural", "Sports", "Robotics")
+
+    // Dynamic role check to verify long-press authorization locally
+    val tokenManager = remember { TokenManager(context) }
+    val userRole by tokenManager.userRoleFlow.collectAsState(initial = "STUDENT")
+
+    val listState = rememberLazyListState()
+    var isHeaderVisible by remember { mutableStateOf(true) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -10) isHeaderVisible = false  // scroll down → hide
+                if (available.y > 10) isHeaderVisible = true   // scroll up → show
+                return Offset.Zero
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            //.background(Color(0xFFF8F9FA))
+            .background(Color.White)
+            .nestedScroll(nestedScrollConnection)
     ) {
-        // Top Toolbar
-
-
+        // Top Toolbar is fully managed in MainActivity now — No duplicate code here!
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F1F5))
         // Greeting Header
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
-            Text(
-                text = "Hey, ${state.currentUserName}!",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF111827)
-            )
-            Text(
-                text = "Ready for some campus action today?",
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
+        AnimatedVisibility(
+            visible = isHeaderVisible,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Text(
+                    text = "Hey, ${state.currentUserName}!",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF111827)
+                )
+                Text(
+                    text = "Ready for some campus action today?",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
         }
 
         // Horizontal Category Filter Scrollbar
@@ -76,7 +116,7 @@ fun EventsScreen(
                     label = { Text(category, fontWeight = FontWeight.Medium) },
                     shape = RoundedCornerShape(20.dp),
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFFA7F3D0), // Custom Light Cyan/Teal shade from screenshot
+                        selectedContainerColor = Color(0xFFA7F3D0),
                         selectedLabelColor = Color(0xFF047857),
                         containerColor = Color(0xFFE5E7EB),
                         labelColor = Color.DarkGray
@@ -87,9 +127,11 @@ fun EventsScreen(
         }
 
         // Main List Rendering with Content Loading Guard
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .weight(1f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+        ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
@@ -105,7 +147,6 @@ fun EventsScreen(
                     textAlign = TextAlign.Center
                 )
             } else if (state.eventsList.isEmpty()) {
-                // EDGE CASE REQ: If empty state show "No events" layout text natively
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -126,11 +167,41 @@ fun EventsScreen(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(bottom = 80.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(state.eventsList) { event ->
-                        EventFeedItem(event = event, onEventClick = onEventClick)
+                        val isSelected = selectedEventId == event.id
+
+                        EventFeedItem(
+                            event = event,
+                            isSelected = isSelected,
+                            onEventClick = { id ->
+                                if (selectedEventId != null) {
+                                    // If selection mode is active, clicking toggles selection
+                                    onSelectionChanged(
+                                        if (isSelected) null else id,
+                                        if (isSelected) null else event.bannerUrl
+                                    )
+                                } else {
+                                    // Normal click goes to detail screen
+                                    onEventClick(id)
+                                }
+                            },
+                            onEventLongClick = { targetEvent ->
+                                // 🔴 SECURITY GUARD: Allow long press actions only for TEACHER or ADMIN
+                                if (userRole == "TEACHER" || userRole == "ADMIN") {
+                                    onSelectionChanged(targetEvent.id, targetEvent.bannerUrl)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Access Denied: Students cannot modify events.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -138,10 +209,13 @@ fun EventsScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun EventFeedItem(
     event: EventSummary,
-    onEventClick: (String) -> Unit
+    isSelected: Boolean,
+    onEventClick: (String) -> Unit,
+    onEventLongClick: (EventSummary) -> Unit
 ) {
     val isTrending = event.registrationBadge == "TRENDING"
 
@@ -149,21 +223,24 @@ fun EventFeedItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp)
-            .clickable { onEventClick(event.id) },
+            .clip(RoundedCornerShape(16.dp))
+            // 🔴 Handles normal single tap and contextual long clicks smoothly
+            .combinedClickable(
+                onClick = { onEventClick(event.id) },
+                onLongClick = { onEventLongClick(event) }
+            ),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color(0xFFE0E7FF) else Color.White // Highlight background if selected
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)) {
-                // Fallback stock image mapping based on index category for testing representation
-                val sampleImage = when (event.clubName.contains("Music")) {
-                    true -> "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800"
-                    false -> "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800"
-                }
-
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
                 AsyncImage(
                     model = event.bannerUrl,
                     contentDescription = null,
@@ -173,7 +250,7 @@ fun EventFeedItem(
                     contentScale = ContentScale.Crop
                 )
 
-                // Custom Badges positioning mapping based on backend payload tags inside design matching
+                // Custom Badges positioning mapping based on backend payload tags
                 Box(
                     modifier = Modifier
                         .padding(12.dp)
@@ -189,6 +266,24 @@ fun EventFeedItem(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+
+                // Check overlay badge displayed during active contextual selection states
+                if (isSelected) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    ) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = "Selected",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
                 }
             }
 

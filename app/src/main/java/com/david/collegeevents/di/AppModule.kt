@@ -5,10 +5,12 @@ import com.david.collegeevents.data.remote.ApiServices
 import com.david.collegeevents.data.remote.AuthInterceptor
 import com.david.collegeevents.data.repository.AdminEventRepositoryImpl
 import com.david.collegeevents.data.repository.AuthRepositoryImpl
+import com.david.collegeevents.data.repository.EventDetailsRepositoryImpl
 import com.david.collegeevents.data.repository.EventRepositoryImpl
 import com.david.collegeevents.data.repository.UserRepositoryImpl
 import com.david.collegeevents.domain.repository.AdminEventRepository
 import com.david.collegeevents.domain.repository.AuthRepository
+import com.david.collegeevents.domain.repository.EventDetailsRepository
 import com.david.collegeevents.domain.repository.EventRepository
 import com.david.collegeevents.domain.repository.UserRepository
 import com.david.collegeevents.utils.TokenManager
@@ -54,7 +56,7 @@ object AppModule {
     @Singleton
     fun provideAuthApi(okHttpClient: OkHttpClient): ApiServices {
         return Retrofit.Builder()
-            .baseUrl("http://10.82.29.143:8080/")
+            .baseUrl("http://10.0.2.2:8080/")
             .client(okHttpClient) // Linked client override
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -83,6 +85,12 @@ object AppModule {
     @Singleton
     fun provideAdminEventRepository(api: ApiServices): AdminEventRepository {
         return AdminEventRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEventDetailsRepository(api: ApiServices): EventDetailsRepository {
+        return EventDetailsRepositoryImpl(api)
     }
 
 }
