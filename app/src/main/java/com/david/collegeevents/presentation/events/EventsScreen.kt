@@ -7,7 +7,18 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -18,8 +29,22 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,12 +98,11 @@ fun EventsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            //.background(Color(0xFFF8F9FA))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .nestedScroll(nestedScrollConnection)
     ) {
         // Top Toolbar is fully managed in MainActivity now — No duplicate code here!
-        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF1F1F5))
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
         // Greeting Header
         AnimatedVisibility(
             visible = isHeaderVisible,
@@ -90,11 +114,11 @@ fun EventsScreen(
                     text = "Hey, ${state.currentUserName}!",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Ready for some campus action today?",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
             }
@@ -116,10 +140,10 @@ fun EventsScreen(
                     label = { Text(category, fontWeight = FontWeight.Medium) },
                     shape = RoundedCornerShape(20.dp),
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFFA7F3D0),
-                        selectedLabelColor = Color(0xFF047857),
-                        containerColor = Color(0xFFE5E7EB),
-                        labelColor = Color.DarkGray
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = null
                 )
@@ -135,7 +159,7 @@ fun EventsScreen(
             if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFF1A237E)
+                    color = MaterialTheme.colorScheme.primary
                 )
             } else if (state.error != null) {
                 Text(
@@ -143,7 +167,7 @@ fun EventsScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(20.dp),
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
             } else if (state.eventsList.isEmpty()) {
@@ -155,12 +179,12 @@ fun EventsScreen(
                         text = "No events",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.LightGray
+                        color = MaterialTheme.colorScheme.outline
                     )
                     Text(
                         text = "There are no events registered in this block.",
                         fontSize = 13.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 40.dp)
                     )
@@ -231,7 +255,7 @@ fun EventFeedItem(
             ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFFE0E7FF) else Color.White // Highlight background if selected
+            containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface // Highlight background if selected
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -255,14 +279,14 @@ fun EventFeedItem(
                     modifier = Modifier
                         .padding(12.dp)
                         .background(
-                            color = if (isTrending) Color(0xFF1A237E) else Color(0xFFA7F3D0),
+                            color = if (isTrending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiaryContainer,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = event.registrationBadge,
-                        color = if (isTrending) Color.White else Color(0xFF047857),
+                        color = if (isTrending) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiaryContainer,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -297,26 +321,26 @@ fun EventFeedItem(
                         event.title,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         Icons.Default.BookmarkBorder,
                         contentDescription = null,
-                        tint = Color(0xFF1A237E)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
 
                 Text(
                     event.clubName,
-                    color = Color(0xFF0D9488),
+                    color = MaterialTheme.colorScheme.secondary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(vertical = 2.dp)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = Color(0xFFF3F4F6))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -326,11 +350,15 @@ fun EventFeedItem(
                     Icon(
                         Icons.Default.DateRange,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("${event.date} • ${event.time}", color = Color.Gray, fontSize = 13.sp)
+                    Text(
+                        "${event.date} • ${event.time}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
                 }
 
                 Row(
@@ -340,11 +368,15 @@ fun EventFeedItem(
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(event.venue, color = Color.Gray, fontSize = 13.sp)
+                    Text(
+                        event.venue,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
