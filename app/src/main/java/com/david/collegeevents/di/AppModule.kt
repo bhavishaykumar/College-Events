@@ -13,6 +13,7 @@ import com.david.collegeevents.domain.repository.AuthRepository
 import com.david.collegeevents.domain.repository.EventDetailsRepository
 import com.david.collegeevents.domain.repository.EventRepository
 import com.david.collegeevents.domain.repository.UserRepository
+import com.david.collegeevents.utils.ThemeManager
 import com.david.collegeevents.utils.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -33,6 +34,12 @@ object AppModule {
     @Singleton
     fun provideTokenManager(@ApplicationContext context: Context): TokenManager {
         return TokenManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideThemeManager(@ApplicationContext context: Context): ThemeManager {
+        return ThemeManager(context)
     }
 
     @Provides

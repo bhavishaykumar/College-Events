@@ -5,10 +5,9 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -60,13 +58,15 @@ import com.david.collegeevents.presentation.createEvent.CreateEventScreen
 import com.david.collegeevents.presentation.details.EventDetailScreen
 import com.david.collegeevents.presentation.events.EventsScreen
 import com.david.collegeevents.presentation.profile.ProfileScreen
+import com.david.collegeevents.presentation.settings.SettingsScreen
 import com.david.collegeevents.ui.theme.CollegeEventsTheme
 import com.david.collegeevents.utils.Resource
+import com.david.collegeevents.utils.ThemeConfig
+import com.david.collegeevents.utils.ThemeManager
 import com.david.collegeevents.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -77,6 +77,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var tokenManager: TokenManager
 
+    @Inject
+    lateinit var themeManager: ThemeManager
+
     // Direct injection for drop actions and background cloud clearings tracking workflows
     @Inject
     lateinit var adminEventRepository: AdminEventRepository
@@ -86,7 +89,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CollegeEventsTheme {
+            val themeConfig by themeManager.themeFlow.collectAsState(initial = ThemeConfig.FOLLOW_SYSTEM)
+
+            CollegeEventsTheme(themeConfig = themeConfig) {
                 val context = LocalContext.current
                 val scope = rememberCoroutineScope()
 
@@ -120,8 +125,8 @@ class MainActivity : ComponentActivity() {
                         if (showFabButton && showTopBar && !isContextualMode) {
                             FloatingActionButton(
                                 onClick = { navController.navigate("create_event_route") },
-                                containerColor = Color(0xFF1A237E),
-                                contentColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                                 shape = CircleShape
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = "Publish Event")
@@ -135,7 +140,7 @@ class MainActivity : ComponentActivity() {
                                     if (isContextualMode) {
                                         Text(
                                             "1 Event Selected",
-                                            color = Color(0xFF1A237E),
+                                            color = MaterialTheme.colorScheme.primary,
                                             fontSize = 18.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -144,13 +149,13 @@ class MainActivity : ComponentActivity() {
                                             Icon(
                                                 Icons.Default.School,
                                                 contentDescription = null,
-                                                tint = Color(0xFF1A237E),
+                                                tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 "College Event",
-                                                color = Color(0xFF1A237E),
+                                                color = MaterialTheme.colorScheme.primary,
                                                 fontSize = 18.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -166,7 +171,7 @@ class MainActivity : ComponentActivity() {
                                             Icon(
                                                 Icons.Default.Close,
                                                 contentDescription = "Cancel Selection",
-                                                tint = Color.Black
+                                                tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                     }
@@ -186,7 +191,7 @@ class MainActivity : ComponentActivity() {
                                             Icon(
                                                 Icons.Default.Edit,
                                                 contentDescription = "Edit Event",
-                                                tint = Color(0xFF1A237E)
+                                                tint = MaterialTheme.colorScheme.primary
                                             )
                                         }
 
@@ -254,18 +259,18 @@ class MainActivity : ComponentActivity() {
                                             Icon(
                                                 Icons.Default.NotificationsNone,
                                                 contentDescription = null,
-                                                tint = Color.Black
+                                                tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                     }
                                 },
-                                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
                             )
                         }
                     },
                     bottomBar = {
                         if (showBottomBar) {
-                            NavigationBar(containerColor = Color.White) {
+                            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                                 NavigationBarItem(
                                     selected = selectedTab == "events",
                                     onClick = {
@@ -280,9 +285,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("Events") },
                                     colors = NavigationBarItemDefaults.colors(
-                                        indicatorColor = Color(
-                                            0xFFA7F3D0
-                                        )
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
                                     )
                                 )
                                 NavigationBarItem(
@@ -299,9 +302,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("Profile") },
                                     colors = NavigationBarItemDefaults.colors(
-                                        indicatorColor = Color(
-                                            0xFFA7F3D0
-                                        )
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
                                     )
                                 )
                             }
@@ -311,7 +312,9 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = startDestination,
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .consumeWindowInsets(innerPadding)
                     ) {
                         composable("login") {
                             LoginScreen(navController = navController) {
@@ -350,6 +353,7 @@ class MainActivity : ComponentActivity() {
                         composable("profile") {
                             ProfileScreen(
                                 onEventClick = { eventId -> navController.navigate("event_details/$eventId") },
+                                onNavigateToSettings = { navController.navigate("settings") },
                                 onLogoutDone = {
                                     navController.navigate("login") {
                                         popUpTo(0) {
@@ -358,6 +362,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
+                        }
+
+                        composable("settings") {
+                            SettingsScreen(onBack = { navController.popBackStack() })
                         }
 
                         composable(

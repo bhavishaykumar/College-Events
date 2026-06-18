@@ -3,14 +3,38 @@ package com.david.collegeevents.presentation.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.MilitaryTech
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +53,7 @@ import com.david.collegeevents.domain.model.EventSummary
 fun ProfileScreen(
     onLogoutDone: () -> Unit,
     onEventClick: (String) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
@@ -43,7 +68,7 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Top Header ToolBar
 //        SmallTopAppBar(
@@ -54,11 +79,14 @@ fun ProfileScreen(
 
         if (state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Color(0xFF1A237E))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = Color.Red, modifier = Modifier.clickable { viewModel.getProfile() })
+                Text(
+                    text = state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.clickable { viewModel.getProfile() })
             }
         } else if (state.profileData != null) {
             val user = state.profileData
@@ -81,35 +109,62 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(96.dp)
                                     .clip(CircleShape)
-                                    .border(2.dp, Color.White, CircleShape),
+                                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
                                 contentScale = ContentScale.Crop
                             )
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
-                                    .background(Color(0xFF1A237E), CircleShape)
-                                    .border(2.dp, Color.White, CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                                     .clickable { },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(14.dp)
+                                )
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = user.fullName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-                        Text(text = user.enrollmentNumber, fontSize = 14.sp, color = Color.Gray)
-                        
+                        Text(
+                            text = user.fullName,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = user.enrollmentNumber,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
                         Spacer(modifier = Modifier.height(8.dp))
                         Box(
                             modifier = Modifier
-                                .background(Color(0xFFE0E7FF), RoundedCornerShape(12.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    RoundedCornerShape(12.dp)
+                                )
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Badge, contentDescription = null, tint = Color(0xFF4338CA), modifier = Modifier.size(14.dp))
+                                Icon(
+                                    Icons.Default.Badge,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(14.dp)
+                                )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(text = user.branchDepartment, color = Color(0xFF4338CA), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = user.branchDepartment,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
                     }
@@ -127,16 +182,16 @@ fun ProfileScreen(
                             title = "Total Events",
                             count = String.format("%02d", user.totalEvents),
                             icon = Icons.Default.CalendarToday,
-                            iconBg = Color(0xFFCCFBF1),
-                            iconColor = Color(0xFF0D9488),
+                            iconBg = MaterialTheme.colorScheme.tertiaryContainer,
+                            iconColor = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.weight(1f)
                         )
                         MetricCard(
                             title = "Certificates",
                             count = String.format("%02d", user.certificatesCount),
                             icon = Icons.Default.MilitaryTech,
-                            iconBg = Color(0xFFFFE4E6),
-                            iconColor = Color(0xFFE11D48),
+                            iconBg = MaterialTheme.colorScheme.errorContainer,
+                            iconColor = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -151,8 +206,18 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "My Registrations", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-                        Text(text = "View All", fontSize = 13.sp, color = Color(0xFF1A237E), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable {})
+                        Text(
+                            text = "My Registrations",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "View All",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable {})
                     }
                 }
 
@@ -169,8 +234,16 @@ fun ProfileScreen(
                             .padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        UtilityRow(title = "Settings", icon = Icons.Default.Settings)
-                        UtilityRow(title = "Help & Support", icon = Icons.Default.HelpOutline)
+                        UtilityRow(
+                            title = "Settings",
+                            icon = Icons.Default.Settings,
+                            onClick = onNavigateToSettings
+                        )
+                        UtilityRow(
+                            title = "Help & Support",
+                            icon = Icons.Default.HelpOutline,
+                            onClick = { }
+                        )
                     }
                 }
 
@@ -185,9 +258,19 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.Logout,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Logout", color = Color.Gray, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                        Text(
+                            text = "Logout",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.sp
+                        )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -197,21 +280,48 @@ fun ProfileScreen(
 }
 
 @Composable
-fun MetricCard(title: String, count: String, icon: ImageVector, iconBg: Color, iconColor: Color, modifier: Modifier = Modifier) {
+fun MetricCard(
+    title: String,
+    count: String,
+    icon: ImageVector,
+    iconBg: Color,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(40.dp).background(iconBg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(iconBg, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(text = title, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-                Text(text = count, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF111827))
+                Text(
+                    text = title,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = count,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -225,7 +335,7 @@ fun RegisteredEventItem(event: EventSummary, onEventClick: (String) -> Unit) {
             .padding(horizontal = 20.dp)
             .clickable { onEventClick(event.id) },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -233,51 +343,104 @@ fun RegisteredEventItem(event: EventSummary, onEventClick: (String) -> Unit) {
                 AsyncImage(
                     model = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500",
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop
                 )
                 Box(
                     modifier = Modifier
                         .padding(4.dp)
-                        .background(Color(0xFF047857), RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                 ) {
-                    Text(text = "REGISTERED", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "REGISTERED",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = event.title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827), maxLines = 1)
+                Text(
+                    text = event.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
+                )
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
+                    Icon(
+                        Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(12.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = event.date, fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = event.date,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(12.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = event.venue, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
+                    Text(
+                        text = event.venue,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
                 }
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF1A237E))
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
 
 @Composable
-fun UtilityRow(title: String, icon: ImageVector) {
+fun UtilityRow(title: String, icon: ImageVector, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color.DarkGray, modifier = Modifier.size(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
             Spacer(modifier = Modifier.width(14.dp))
-            Text(text = title, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline
+            )
         }
     }
 }
