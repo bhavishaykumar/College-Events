@@ -16,18 +16,18 @@ class TokenManager(private val context: Context) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("jwt_token")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
-        private val USER_ROLE_KEY = stringPreferencesKey("user_role") // 👈 NEW ROLE KEY
+        private val USER_ROLE_KEY = stringPreferencesKey("user_role") //  NEW ROLE KEY
     }
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map { it[TOKEN_KEY] }
     val userNameFlow: Flow<String?> = context.dataStore.data.map { it[USER_NAME_KEY] }
 
-    // 🔴 NEW: Flow to read user role instantly anywhere in the UI
+    // NEW: Flow to read user role instantly anywhere in the UI
     val userRoleFlow: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[USER_ROLE_KEY] ?: "STUDENT" // Default is STUDENT if empty
     }
 
-    // 🔴 Updated to accept and save 'role'
+    // Updated to accept and save 'role'
     suspend fun saveSession(token: String, userName: String, role: String) {
         context.dataStore.edit { preferences ->
             preferences[TOKEN_KEY] = token

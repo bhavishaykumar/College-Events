@@ -100,18 +100,21 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.5")
 
-// Navigation
+    // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.0")
 
     // this is for coil
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-// Hilt
+    // Lottie animation
+    implementation("com.airbnb.android:lottie-compose:4.0.0")
+
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
-// Networking
+    // Networking
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -119,22 +122,22 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
 
 
-// DataStore
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-// Coroutines
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
 // Firebase
 //    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
 //    implementation("com.google.firebase:firebase-messaging")
 
-// Core
+    // Core
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.5")
 
-// Permissions (Accompanist - LocationPermissionWrapper ke liye)
+    // Permissions (Accompanist - LocationPermissionWrapper ke liye)
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
 }
 

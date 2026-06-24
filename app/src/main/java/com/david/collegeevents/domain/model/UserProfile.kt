@@ -2,6 +2,7 @@ package com.david.collegeevents.domain.model
 
 data class UserProfile(
     val fullName: String,
+    val profileImage: String ?= "",
     val enrollmentNumber: String,
     val branchDepartment: String,
     val totalEvents: Int,
