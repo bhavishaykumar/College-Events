@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,7 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.airbnb.lottie.LottieComposition
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.david.collegeevents.R
 import com.david.collegeevents.domain.model.EventSummary
+import com.david.collegeevents.utils.NameAvatar
 
 @Composable
 fun ProfileScreen(
@@ -32,6 +40,10 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state = viewModel.state
+
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.no_result_found)
+    )
 
     // Auto trigger redirection upon token clearance check
     androidx.compose.runtime.LaunchedEffect(state.isLoggedOut) {
@@ -58,7 +70,10 @@ fun ProfileScreen(
             }
         } else if (state.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.error, color = Color.Red, modifier = Modifier.clickable { viewModel.getProfile() })
+                Text(
+                    text = state.error,
+                    color = Color.Red,
+                    modifier = Modifier.clickable { viewModel.getProfile() })
             }
         } else if (state.profileData != null) {
             val user = state.profileData
@@ -75,15 +90,39 @@ fun ProfileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(contentAlignment = Alignment.BottomEnd) {
-                            AsyncImage(
-                                model = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", // Placeholder matching Stitch UI character element
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier
-                                    .size(96.dp)
-                                    .clip(CircleShape)
-                                    .border(2.dp, Color.White, CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
+                            if (user.profileImage == "") {
+                                NameAvatar(
+                                    name = user.fullName,
+                                    size = 96.dp
+                                )
+                            } else {
+                                AsyncImage(
+                                    model = user.profileImage,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier
+                                        .size(96.dp)
+                                        .clip(CircleShape)
+                                        .border(4.dp, Color(0xFFDBEAFE), CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                // Online indicator
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.BottomEnd)
+                                        .background(Color(0xFF22C55E), CircleShape)
+                                        .border(4.dp, Color.White, CircleShape)
+                                )
+                            }
+//                            AsyncImage(
+//                                model = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500", // Placeholder matching Stitch UI character element
+//                                contentDescription = "Profile Picture",
+//                                modifier = Modifier
+//                                    .size(96.dp)
+//                                    .clip(CircleShape)
+//                                    .border(2.dp, Color.White, CircleShape),
+//                                contentScale = ContentScale.Crop
+//                            )
                             Box(
                                 modifier = Modifier
                                     .size(28.dp)
@@ -92,14 +131,24 @@ fun ProfileScreen(
                                     .clickable { },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = user.fullName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
+                        Text(
+                            text = user.fullName,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827)
+                        )
                         Text(text = user.enrollmentNumber, fontSize = 14.sp, color = Color.Gray)
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
                         Box(
                             modifier = Modifier
@@ -107,9 +156,19 @@ fun ProfileScreen(
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Badge, contentDescription = null, tint = Color(0xFF4338CA), modifier = Modifier.size(14.dp))
+                                Icon(
+                                    Icons.Default.Badge,
+                                    contentDescription = null,
+                                    tint = Color(0xFF4338CA),
+                                    modifier = Modifier.size(14.dp)
+                                )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(text = user.branchDepartment, color = Color(0xFF4338CA), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = user.branchDepartment,
+                                    color = Color(0xFF4338CA),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
                         }
                     }
@@ -151,15 +210,52 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "My Registrations", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-                        Text(text = "View All", fontSize = 13.sp, color = Color(0xFF1A237E), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable {})
+                        Text(
+                            text = "My Registrations",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111827)
+                        )
+                        if (user.registeredEvents.isNotEmpty()) {
+                            Text(
+                                text = "View All",
+                                fontSize = 13.sp,
+                                color = Color(0xFF1A237E),
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable {})
+                        }
                     }
                 }
 
                 // Horizontal Listed Registrations Items mapping loop
-                items(user.registeredEvents) { event ->
-                    RegisteredEventItem(event = event, onEventClick = onEventClick)
+                if (user.registeredEvents.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            LottieAnimation(
+                                composition,
+                                modifier = Modifier
+                                    .size(150.dp),
+                            )
+                            Text(
+                                text = "You haven't register yet to any event.",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                } else {
+                    items(user.registeredEvents) { event ->
+                        RegisteredEventItem(event = event, onEventClick = onEventClick)
+                    }
                 }
+
 
                 // Quick Navigation Utilities Settings Items
                 item {
@@ -185,9 +281,19 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout", tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Default.Logout,
+                            contentDescription = "Logout",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Logout", color = Color.Gray, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                        Text(
+                            text = "Logout",
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.sp
+                        )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -197,7 +303,14 @@ fun ProfileScreen(
 }
 
 @Composable
-fun MetricCard(title: String, count: String, icon: ImageVector, iconBg: Color, iconColor: Color, modifier: Modifier = Modifier) {
+fun MetricCard(
+    title: String,
+    count: String,
+    icon: ImageVector,
+    iconBg: Color,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -205,13 +318,33 @@ fun MetricCard(title: String, count: String, icon: ImageVector, iconBg: Color, i
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(40.dp).background(iconBg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(iconBg, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(text = title, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-                Text(text = count, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF111827))
+                Text(
+                    text = title,
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = count,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF111827)
+                )
             }
         }
     }
@@ -231,32 +364,42 @@ fun RegisteredEventItem(event: EventSummary, onEventClick: (String) -> Unit) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(64.dp)) {
                 AsyncImage(
-                    model = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500",
+                    model = event.bannerUrl,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop
                 )
-                Box(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .background(Color(0xFF047857), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) {
-                    Text(text = "REGISTERED", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = event.title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827), maxLines = 1)
+                Text(
+                    text = event.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    maxLines = 1
+                )
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
+                    Icon(
+                        Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(12.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = event.date, fontSize = 12.sp, color = Color.Gray)
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(12.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = event.venue, fontSize = 12.sp, color = Color.Gray, maxLines = 1)
                 }
@@ -274,9 +417,20 @@ fun UtilityRow(title: String, icon: ImageVector) {
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color.DarkGray, modifier = Modifier.size(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = Color.DarkGray,
+                modifier = Modifier.size(20.dp)
+            )
             Spacer(modifier = Modifier.width(14.dp))
-            Text(text = title, modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF111827)
+            )
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
         }
     }
